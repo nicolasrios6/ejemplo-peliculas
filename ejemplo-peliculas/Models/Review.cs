@@ -1,4 +1,6 @@
-﻿namespace ejemplo_peliculas.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace ejemplo_peliculas.Models
 {
     public class Review
     {
@@ -7,8 +9,16 @@
         public Pelicula? Pelicula { get; set; }
         public string UsuarioId { get; set; }
         public Usuario? Usuario { get; set; }
+        [Range(1, 5)]
         public int Rating { get; set; }
+        [StringLength(500)]
         public string Comentario { get; set; }
+        [Required]
+        [DataType(DataType.Date)] 
         public DateTime FechaReview { get; set; }
+
+        //row version for concurrency control 
+        [Timestamp]
+        public byte[] RowVersion { get; set; }
     }
 }
