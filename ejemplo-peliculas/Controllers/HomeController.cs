@@ -2,6 +2,7 @@ using System.Diagnostics;
 using ejemplo_peliculas.Data;
 using ejemplo_peliculas.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace ejemplo_peliculas.Controllers
@@ -18,7 +19,7 @@ namespace ejemplo_peliculas.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index(int pagina = 1, string txtBusqueda = "")
+        public async Task<IActionResult> Index(int pagina = 1, string txtBusqueda = "", int generoId = 0)
         {
             if(pagina < 1) pagina = 1;
 
@@ -28,6 +29,10 @@ namespace ejemplo_peliculas.Controllers
                 consulta = consulta.Where(p => p.Titulo.Contains(txtBusqueda));
             }
 
+            if(generoId > 0)
+            {
+                consulta = consulta.Where(p => p.GeneroId == generoId);
+            }
 
 
             var totalPeliculas = await consulta.CountAsync();
@@ -44,9 +49,27 @@ namespace ejemplo_peliculas.Controllers
             ViewBag.TotalPaginas = totalPaginas;
             ViewBag.TotalPeliculas = totalPeliculas;
             ViewBag.TxtBusqueda = txtBusqueda;
+
+            var generos = await _context.Generos.OrderBy(g => g.Descripcion).ToListAsync();
+            generos.Insert(0, new Genero { Id = 0, Descripcion = "Género" });
+            ViewBag.GeneroId = new SelectList(
+                generos,
+                "Id",
+                "Descripcion",
+                generoId
+            );
+
             return View(peliculas);
         }
 
+        public async Task<IActionResult> Details(int id)
+        {
+            var pelicula = await _context.Peliculas
+                .Include(p => p.Genero)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            return View(pelicula);
+        }
         public IActionResult Privacy()
         {
             return View();
