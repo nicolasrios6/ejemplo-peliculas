@@ -1,5 +1,7 @@
 using ejemplo_peliculas.Data;
 using ejemplo_peliculas.Models;
+using ejemplo_peliculas.Service;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,8 +19,8 @@ builder.Services.AddIdentityCore<Usuario>(options =>
     {
         options.SignIn.RequireConfirmedAccount = false;
         options.Password.RequireNonAlphanumeric = false;
-        options.Password.RequireUppercase = false;
         options.Password.RequiredLength = 3;
+        options.Password.RequireUppercase = false;
     }
 )
     .AddRoles<IdentityRole>()
@@ -29,7 +31,7 @@ builder.Services.AddAuthentication(opt =>
 {
     opt.DefaultScheme = IdentityConstants.ApplicationScheme;
 })
-    .AddIdentityCookies();
+.AddIdentityCookies();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -38,6 +40,9 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.LoginPath = "/Usuario/Login";
     options.AccessDeniedPath = "/Usuario/AccessDenied";
 });
+
+builder.Services.AddScoped<ImagenStorage>();
+builder.Services.Configure<FormOptions>(o => {o.MultipartBodyLengthLimit = 2 * 1024 *1024;});
 
 var app = builder.Build();
 

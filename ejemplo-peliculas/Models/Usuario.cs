@@ -14,7 +14,7 @@ namespace ejemplo_peliculas.Models
         public string Apellido { get; set; }
         [DataType(DataType.Date)]
         public DateTime FechaNacimiento { get; set; }
-        public string ImagenPerfilUrl { get; set; }
+        public string? ImagenPerfilUrl { get; set; }
         public List<Favorito> PeliculasFavoritas { get; set; }
         public List<Review>? ReviewsUsuario { get; set; }
     }
@@ -47,5 +47,14 @@ namespace ejemplo_peliculas.Models
         [Required(ErrorMessage = "La clave es obligatoria.")]
         public string Clave { get; set; }
         public bool Recordarme { get; set; }
+    }
+
+    public class MiPerfilViewModel
+    {
+        public string Nombre { get; set; }
+        public string Apellido { get; set; }
+        public string? Email { get; set; }
+        public IFormFile? ImagenPerfil { get; set; }
+        public string? ImagenUrlPerfil { get; set; }
     }
 }

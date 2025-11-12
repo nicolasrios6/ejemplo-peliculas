@@ -1,4 +1,6 @@
 ﻿using ejemplo_peliculas.Models;
+using ejemplo_peliculas.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,10 +10,12 @@ namespace ejemplo_peliculas.Controllers
     {
         private readonly UserManager<Usuario> _userManager;
         private readonly SignInManager<Usuario> _signInManager;
-        public UsuarioController(UserManager<Usuario> userManager, SignInManager<Usuario> signInManager)
+        private readonly ImagenStorage _imagenStorage;
+        public UsuarioController(UserManager<Usuario> userManager, SignInManager<Usuario> signInManager, ImagenStorage imagenStorage)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _imagenStorage = imagenStorage;
         }
         public IActionResult Login()
         {
@@ -86,6 +90,70 @@ namespace ejemplo_peliculas.Controllers
             return View();
         }
 
+        [Authorize]
+        public async Task<IActionResult> MiPerfil()
+        {
+            var usuarioActual = await _userManager.GetUserAsync(User);
+
+            var usuarioVM = new MiPerfilViewModel
+            {
+                Nombre = usuarioActual.Nombre,
+                Apellido = usuarioActual.Apellido,
+                Email = usuarioActual.Email,
+                ImagenUrlPerfil = usuarioActual.ImagenPerfilUrl
+            };
+
+            return View(usuarioVM);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MiPerfil(MiPerfilViewModel usuarioVM)
+        {
+
+            if (ModelState.IsValid)
+            {
+                var usuarioActual = await _userManager.GetUserAsync(User);
+
+                try
+                {
+                    if (usuarioVM.ImagenPerfil is not null && usuarioVM.ImagenPerfil.Length > 0)
+                    {
+                        // opcional: borrar la anterior (si no es placeholder)
+                        if (!string.IsNullOrWhiteSpace(usuarioActual.ImagenPerfilUrl))
+                            await _imagenStorage.DeleteAsync(usuarioActual.ImagenPerfilUrl);
+
+                        var nuevaRuta = await _imagenStorage.SaveAsync(usuarioActual.Id, usuarioVM.ImagenPerfil);
+                        usuarioActual.ImagenPerfilUrl = nuevaRuta;
+                        usuarioVM.ImagenUrlPerfil = nuevaRuta;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError(string.Empty, ex.Message);
+                    return View(usuarioVM);
+                }
+
+                usuarioActual.Nombre = usuarioVM.Nombre;
+                usuarioActual.Apellido = usuarioVM.Apellido;
+                // Aquí podrías agregar lógica para actualizar la imagen de perfil si es necesario
+                var resultado = await _userManager.UpdateAsync(usuarioActual);
+                if (resultado.Succeeded)
+                {
+                    ViewBag.Mensaje = "Perfil actualizado con éxito.";
+                    return View(usuarioVM);
+                }
+                else
+                {
+                    foreach (var error in resultado.Errors)
+                    {
+                        ModelState.AddModelError(string.Empty, error.Description);
+                    }
+                }
+            }
+
+            return View(usuarioVM);
+        }
 
     }
 }
