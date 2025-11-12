@@ -14,7 +14,7 @@ namespace ejemplo_peliculas.Models
         public string Apellido { get; set; }
         [DataType(DataType.Date)]
         public DateTime FechaNacimiento { get; set; }
-        public string? ImagenPerfilUrl { get; set; }
+        public string? ImagenUrlPerfil { get; set; }
         public List<Favorito> PeliculasFavoritas { get; set; }
         public List<Review>? ReviewsUsuario { get; set; }
     }

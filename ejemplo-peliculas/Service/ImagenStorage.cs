@@ -6,7 +6,7 @@ namespace ejemplo_peliculas.Service
     public class ImagenStorage
     {
         private readonly IWebHostEnvironment _env;
-        private static readonly HashSet<string> _alowwed = new(StringComparer.OrdinalIgnoreCase)
+        private static readonly HashSet<string> _allowed = new(StringComparer.OrdinalIgnoreCase)
         {
             "image/png",
             "image/jpeg",
@@ -24,28 +24,28 @@ namespace ejemplo_peliculas.Service
                 throw new InvalidOperationException("Archivo vacío.");
 
             if (file.Length > 2 * 1024 * 1024)
-                throw new InvalidOperationException("Supera el limite de 2MB");
+                throw new InvalidOperationException("Supera el límite de 2 MB.");
 
-            //1) validar content-type declarado
-            if (!_alowwed.Contains(file.ContentType))
+            // 1) Validar Content-Type declarado
+            if (!_allowed.Contains(file.ContentType))
                 throw new InvalidOperationException("Formato no permitido.");
 
-            //2) Validar firma real (cargar con ImageSharp). Esto evita spooting.
-            //puede lanzar exepciones si no es imagen o esta corrupta.
-            //hay que aplicar manejo de excepciones aqui y luego en el controlador
+            // 2) Validar firma real (cargar con ImageSharp). Esto evita spoofing.
+            //Puede lanzar excepciones si no es imagen o está corrupta.
+            //hay que aplicar manejo de excepciones aquí y luego en el controlador
             //en el controlador se puede capturar y guardar en el modelstate
             using var image = await Image.LoadAsync(file.OpenReadStream(), ct);
 
-            //3) Normaliza: recortar cuadrado y redimensionar (p.ej. 512x512)
+            // 3) Normalizar: recortar cuadrado y redimensionar (p.ej. 512x512)
             image.Mutate(x => x.Resize(new ResizeOptions
             {
                 Size = new Size(512, 512),
                 Mode = ResizeMode.Crop
             }));
 
-            //4) Elegir extension de salida (recomendado: webp o jpg)
+            // 4) Elegir extensión de salida (recomiendo webp o jpg)
             var ext = ".webp";
-            var folderRel = $"uploads/avatars/{userId}";
+            var folderRel = $"/uploads/avatars/{userId}";
             var folderAbs = Path.Combine(_env.WebRootPath, "uploads", "avatars", userId);
 
             Directory.CreateDirectory(folderAbs);
@@ -66,5 +66,6 @@ namespace ejemplo_peliculas.Service
             if (File.Exists(abs)) File.Delete(abs);
             return Task.CompletedTask;
         }
+
     }
 }

@@ -58,7 +58,7 @@ namespace ejemplo_peliculas.Controllers
                     Email = usuario.Email,
                     Nombre = usuario.Nombre,
                     Apellido = usuario.Apellido,
-                    ImagenPerfilUrl = "default-profile.png"
+                    ImagenUrlPerfil = "default-profile.png"
                 };
 
                 var resultado = await _userManager.CreateAsync(nuevoUsuario, usuario.Clave);
@@ -100,17 +100,18 @@ namespace ejemplo_peliculas.Controllers
                 Nombre = usuarioActual.Nombre,
                 Apellido = usuarioActual.Apellido,
                 Email = usuarioActual.Email,
-                ImagenUrlPerfil = usuarioActual.ImagenPerfilUrl
+                ImagenUrlPerfil = usuarioActual.ImagenUrlPerfil
             };
 
             return View(usuarioVM);
         }
 
+
+        [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> MiPerfil(MiPerfilViewModel usuarioVM)
         {
-
             if (ModelState.IsValid)
             {
                 var usuarioActual = await _userManager.GetUserAsync(User);
@@ -120,11 +121,11 @@ namespace ejemplo_peliculas.Controllers
                     if (usuarioVM.ImagenPerfil is not null && usuarioVM.ImagenPerfil.Length > 0)
                     {
                         // opcional: borrar la anterior (si no es placeholder)
-                        if (!string.IsNullOrWhiteSpace(usuarioActual.ImagenPerfilUrl))
-                            await _imagenStorage.DeleteAsync(usuarioActual.ImagenPerfilUrl);
+                        if (!string.IsNullOrWhiteSpace(usuarioActual.ImagenUrlPerfil))
+                            await _imagenStorage.DeleteAsync(usuarioActual.ImagenUrlPerfil);
 
                         var nuevaRuta = await _imagenStorage.SaveAsync(usuarioActual.Id, usuarioVM.ImagenPerfil);
-                        usuarioActual.ImagenPerfilUrl = nuevaRuta;
+                        usuarioActual.ImagenUrlPerfil = nuevaRuta;
                         usuarioVM.ImagenUrlPerfil = nuevaRuta;
                     }
                 }
@@ -136,8 +137,9 @@ namespace ejemplo_peliculas.Controllers
 
                 usuarioActual.Nombre = usuarioVM.Nombre;
                 usuarioActual.Apellido = usuarioVM.Apellido;
-                // Aquí podrías agregar lógica para actualizar la imagen de perfil si es necesario
+
                 var resultado = await _userManager.UpdateAsync(usuarioActual);
+
                 if (resultado.Succeeded)
                 {
                     ViewBag.Mensaje = "Perfil actualizado con éxito.";
@@ -151,7 +153,6 @@ namespace ejemplo_peliculas.Controllers
                     }
                 }
             }
-
             return View(usuarioVM);
         }
 
