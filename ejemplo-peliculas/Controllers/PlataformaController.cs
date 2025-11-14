@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ejemplo_peliculas.Data;
 using ejemplo_peliculas.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ejemplo_peliculas.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class PlataformaController : Controller
     {
         private readonly MovieDbContext _context;

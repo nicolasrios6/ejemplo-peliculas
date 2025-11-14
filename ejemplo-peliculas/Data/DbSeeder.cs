@@ -1,12 +1,40 @@
 ﻿using ejemplo_peliculas.Models;
+using Microsoft.AspNetCore.Identity;
 
 namespace ejemplo_peliculas.Data
 {
     public class DbSeeder
     {
-        public static void Seed(MovieDbContext context)
+        public static async Task Seed(MovieDbContext context, UserManager<Usuario> userManager, RoleManager<IdentityRole> roleManager)
         {
             context.Database.EnsureCreated();
+
+            //Crear el rol "Admin" si no existe
+            if (!await roleManager.RoleExistsAsync("Admin"))
+            {
+                await roleManager.CreateAsync(new IdentityRole("Admin"));
+            }
+
+            //Crear un usuario admin si no existe
+            var adminUser = await userManager.FindByEmailAsync("admin@admin.com");
+            if(adminUser == null)
+            {
+                adminUser = new Usuario
+                {
+                    UserName = "admin@admin.com",
+                    Email = "admin@admin.com",
+                    Nombre = "Admin",
+                    Apellido = "Sistema",
+                    ImagenUrlPerfil = "/images/default-avatar.png"
+                };
+
+                var result = await userManager.CreateAsync(adminUser, "Admin123");
+                if(result.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(adminUser, "Admin");
+                }
+            }
+
             if (context.Peliculas.Any() || context.Plataformas.Any() || context.Generos.Any())
                 return;
 
