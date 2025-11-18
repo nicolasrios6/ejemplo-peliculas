@@ -44,6 +44,9 @@ builder.Services.ConfigureApplicationCookie(options =>
 builder.Services.AddScoped<ImagenStorage>();
 builder.Services.Configure<FormOptions>(o => {o.MultipartBodyLengthLimit = 2 * 1024 *1024;});
 
+builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("Smtp"));
+builder.Services.AddScoped<IEmailService, SmtpEmailService>();
+
 var app = builder.Build();
 
 //invocar la ejecucion del dbseeder con using scope

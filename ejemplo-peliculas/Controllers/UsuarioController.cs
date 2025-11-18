@@ -11,11 +11,13 @@ namespace ejemplo_peliculas.Controllers
         private readonly UserManager<Usuario> _userManager;
         private readonly SignInManager<Usuario> _signInManager;
         private readonly ImagenStorage _imagenStorage;
-        public UsuarioController(UserManager<Usuario> userManager, SignInManager<Usuario> signInManager, ImagenStorage imagenStorage)
+        private readonly IEmailService _emailService;
+        public UsuarioController(UserManager<Usuario> userManager, SignInManager<Usuario> signInManager, ImagenStorage imagenStorage, IEmailService emailService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _imagenStorage = imagenStorage;
+            _emailService = emailService;
         }
         public IActionResult Login()
         {
@@ -66,6 +68,7 @@ namespace ejemplo_peliculas.Controllers
                 if (resultado.Succeeded)
                 {
                     await _signInManager.SignInAsync(nuevoUsuario, isPersistent: false);
+                    await _emailService.SendAsync(nuevoUsuario.Email, "Bienvenido a Ejemplo Películas", "<h1>Gracias por registrarte!</h1><p>Esperamos que disfrutes usando nuestra aplicación.</p>");
                     return RedirectToAction("Index", "Home");
                 }
                 else
